@@ -1,0 +1,173 @@
+@page "/history"
+@using Frontend.Models
+@using Frontend.Services
+@inject TodoApiService TodoApi
+
+<PageTitle>Historia zadań</PageTitle>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📊 Historia wykonanych zadań</h1>
+        <a href="/" class="btn btn-outline-primary">Powrót do listy zadań</a>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Ładowanie...</span>
+            </div>
+        </div>
+    }
+    else if (!history.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-graph-up" style="font-size: 3rem; color: #6c757d;"></i>
+            <p class="text-muted mt-3">Brak danych historycznych.<br />Historia będzie dostępna po pierwszym dniu korzystania z aplikacji.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Statystyki ogólne -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-primary">@history.Count</h3>
+                        <p class="card-text">Dni z danymi</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-success">@averageCompletion%</h3>
+                        <p class="card-text">Średnie wykonanie</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-info">@totalTasksCompleted</h3>
+                        <p class="card-text">Zadań wykonanych</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h3 class="text-warning">@bestDay?.Date.ToString("dd.MM")</h3>
+                        <p class="card-text">Najlepszy dzień</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista historii -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Historia dzienna</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Dzień tygodnia</th>
+                                <th>Wykonane</th>
+                                <th>Łącznie</th>
+                                <th>Procent</th>
+                                <th>Pasek postępu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var day in history.OrderByDescending(h => h.Date))
+                            {
+                                <tr class="@(day.CompletionPercentage == 100 ? "table-success" : day.CompletionPercentage >= 80 ? "table-warning" : "")">
+                                    <td class="fw-bold">@day.Date.ToString("dd.MM.yyyy")</td>
+                                    <td>@day.Date.ToString("dddd")</td>
+                                    <td>
+                                        <span class="badge bg-success">@day.CompletedTasks</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">@day.TotalTasks</span>
+                                    </td>
+                                    <td class="fw-bold">@day.CompletionPercentage%</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar @(day.CompletionPercentage == 100 ? "bg-success" : day.CompletionPercentage >= 80 ? "bg-warning" : "bg-info")" 
+                                                 role="progressbar" 
+                                                 style="width: @(day.CompletionPercentage)%"
+                                                 aria-valuenow="@day.CompletedTasks" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="@day.TotalTasks">
+                                                @if (day.CompletionPercentage >= 30)
+                                                {
+                                                    <span>@day.CompletionPercentage%</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wykres trendów (prosty ASCII) -->
+        @if (history.Count >= 7)
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Trend ostatnich 7 dni</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var day in history.OrderByDescending(h => h.Date).Take(7).Reverse())
+                        {
+                            <div class="col text-center">
+                                <div class="mb-2">
+                                    <div class="progress mx-auto" style="height: 100px; width: 20px; writing-mode: vertical-lr;">
+                                        <div class="progress-bar @(day.CompletionPercentage == 100 ? "bg-success" : day.CompletionPercentage >= 80 ? "bg-warning" : "bg-info")" 
+                                             role="progressbar" 
+                                             style="height: @(day.CompletionPercentage)%"
+                                             title="@day.CompletionPercentage%">
+                                        </div>
+                                    </div>
+                                </div>
+                                <small class="text-muted">@day.Date.ToString("dd.MM")</small><br />
+                                <small class="fw-bold">@day.CompletionPercentage%</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<DailyHistory> history = new();
+    private bool isLoading = true;
+
+    private double averageCompletion => history.Any() ? Math.Round(history.Average(h => h.CompletionPercentage), 1) : 0;
+    private int totalTasksCompleted => history.Sum(h => h.CompletedTasks);
+    private DailyHistory? bestDay => history.OrderByDescending(h => h.CompletionPercentage).ThenByDescending(h => h.CompletedTasks).FirstOrDefault();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistory();
+    }
+
+    private async Task LoadHistory()
+    {
+        isLoading = true;
+        history = await TodoApi.GetHistoryAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,263 @@
+﻿@page "/"
+@using Frontend.Models
+@using Frontend.Services
+@inject TodoApiService TodoApi
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Lista zadań</PageTitle>
+
+<div class="container">
+    <h1 class="mb-4">📝 Lista zadań na dziś</h1>
+    <p class="text-muted mb-4">@DateTime.Now.ToString("dddd, dd MMMM yyyy")</p>
+
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Ładowanie...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Formularz dodawania nowego zadania -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col">
+                        <input @bind="newTaskName" @onkeypress="HandleKeyPress" 
+                               class="form-control" placeholder="Dodaj nowe zadanie..." 
+                               disabled="@isAddingTask" />
+                    </div>
+                    <div class="col-auto">
+                        <button @onclick="AddTask" class="btn btn-primary" disabled="@(isAddingTask || string.IsNullOrWhiteSpace(newTaskName))">
+                            @if (isAddingTask)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                            }
+                            Dodaj
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista zadań -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Zadania (@completedTasks/@totalTasks wykonanych)</h5>
+                @if (totalTasks > 0)
+                {
+                    <div class="progress" style="width: 200px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: @(completedTasks * 100.0 / totalTasks)%"
+                             aria-valuenow="@completedTasks" aria-valuemin="0" aria-valuemax="@totalTasks">
+                            @Math.Round(completedTasks * 100.0 / totalTasks, 1)%
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="card-body">
+                @if (!tasks.Any())
+                {
+                    <p class="text-muted text-center py-4">
+                        <i class="bi bi-clipboard"></i><br />
+                        Brak zadań na dziś. Dodaj pierwsze zadanie!
+                    </p>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var task in tasks)
+                        {
+                            <div class="list-group-item d-flex align-items-center @(task.IsCompleted ? "task-completed" : "")">
+                                <div class="form-check me-3">
+                                    <input class="form-check-input" type="checkbox" 
+                                           checked="@task.IsCompleted" 
+                                           @onchange="() => ToggleTask(task.Id)" />
+                                </div>
+                                
+                                @if (editingTaskId == task.Id)
+                                {
+                                    <div class="flex-grow-1 me-2">
+                                        <input @bind="editTaskName" @onkeypress="(e) => HandleEditKeyPress(e, task.Id)"
+                                               class="form-control form-control-sm" />
+                                    </div>
+                                    <button @onclick="() => SaveTaskEdit(task.Id)" class="btn btn-sm btn-success me-1">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                    <button @onclick="CancelEdit" class="btn btn-sm btn-secondary">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <div class="flex-grow-1 task-name @(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                        @task.Name
+                                    </div>
+                                    <div class="btn-group">
+                                        <button @onclick="() => StartEdit(task)" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button @onclick="() => DeleteTask(task.Id)" class="btn btn-sm btn-outline-danger"
+                                                @onclick:preventDefault="true">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Krótkie statystyki -->
+        @if (recentHistory.Any())
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">📊 Ostatnie dni</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var day in recentHistory.Take(7))
+                        {
+                            <div class="col-12 col-md-6 col-lg-4 mb-2">
+                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                    <span class="fw-bold">@day.Date.ToString("dd.MM")</span>
+                                    <span class="badge bg-primary">@day.CompletedTasks/@day.TotalTasks (@day.CompletionPercentage%)</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="/history" class="btn btn-outline-primary">Zobacz pełną historię</a>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private List<TodoTask> tasks = new();
+    private List<DailyHistory> recentHistory = new();
+    private string newTaskName = string.Empty;
+    private string editTaskName = string.Empty;
+    private int? editingTaskId = null;
+    private bool isLoading = true;
+    private bool isAddingTask = false;
+
+    private int totalTasks => tasks.Count;
+    private int completedTasks => tasks.Count(t => t.IsCompleted);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        tasks = await TodoApi.GetTasksAsync();
+        recentHistory = await TodoApi.GetHistoryAsync();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task AddTask()
+    {
+        if (string.IsNullOrWhiteSpace(newTaskName)) return;
+
+        isAddingTask = true;
+        var createDto = new CreateTaskDto { Name = newTaskName.Trim() };
+        var result = await TodoApi.CreateTaskAsync(createDto);
+        
+        if (result != null)
+        {
+            tasks.Add(result);
+            newTaskName = string.Empty;
+        }
+        
+        isAddingTask = false;
+        StateHasChanged();
+    }
+
+    private async Task ToggleTask(int taskId)
+    {
+        var success = await TodoApi.ToggleTaskAsync(taskId);
+        if (success)
+        {
+            var task = tasks.FirstOrDefault(t => t.Id == taskId);
+            if (task != null)
+            {
+                task.IsCompleted = !task.IsCompleted;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task DeleteTask(int taskId)
+    {
+        var success = await TodoApi.DeleteTaskAsync(taskId);
+        if (success)
+        {
+            tasks.RemoveAll(t => t.Id == taskId);
+            StateHasChanged();
+        }
+    }
+
+    private void StartEdit(TodoTask task)
+    {
+        editingTaskId = task.Id;
+        editTaskName = task.Name;
+        StateHasChanged();
+    }
+
+    private async Task SaveTaskEdit(int taskId)
+    {
+        if (string.IsNullOrWhiteSpace(editTaskName)) return;
+
+        var updateDto = new UpdateTaskDto { Name = editTaskName.Trim() };
+        var success = await TodoApi.UpdateTaskAsync(taskId, updateDto);
+        
+        if (success)
+        {
+            var task = tasks.FirstOrDefault(t => t.Id == taskId);
+            if (task != null)
+            {
+                task.Name = editTaskName.Trim();
+            }
+        }
+        
+        CancelEdit();
+    }
+
+    private void CancelEdit()
+    {
+        editingTaskId = null;
+        editTaskName = string.Empty;
+        StateHasChanged();
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddTask();
+        }
+    }
+
+    private async Task HandleEditKeyPress(KeyboardEventArgs e, int taskId)
+    {
+        if (e.Key == "Enter")
+        {
+            await SaveTaskEdit(taskId);
+        }
+        else if (e.Key == "Escape")
+        {
+            CancelEdit();
+        }
+    }
+}

@@ -1,0 +1,46 @@
+Oto podsumowana lista wymagań technicznych dla Twojej aplikacji kalendarza zadań:
+
+---
+
+### Wymagania techniczne dla aplikacji webowej „Lista zadań”
+
+#### 1. Platforma i dostępność
+
+* Aplikacja webowa responsywna, dostępna online przez przeglądarkę zarówno na desktopie, jak i na urządzeniach mobilnych.
+* Obsługa podstawowych przeglądarek i ich mobilnych wersji (Chrome, Firefox, Safari, Edge).
+
+#### 2. Użytkownik i dostęp
+
+* Aplikacja jednostanowiskowa – bez mechanizmu logowania.
+* Jeden użytkownik obsługuje listę zadań.
+
+#### 3. Funkcjonalność listy zadań
+
+* Lista zadań powtarzalnych na każdy dzień.
+* Możliwość dodawania nowych zadań, edytowania nazw istniejących zadań oraz usuwania zadań.
+* Kolejność zadań: według kolejności dodania, bez ręcznego sortowania.
+
+#### 4. Status zadań i reset
+
+* Zadania mają status: wykonane lub niewykonane.
+* Statusy zadań resetują się automatycznie o północy każdego dnia – na nowy dzień wszystkie zadania ustawione są jako niewykonane.
+
+#### 5. Historia i statystyki
+
+* Aplikacja rejestruje dzienne podsumowanie: ile zadań zostało wykonanych każdego dnia.
+* Możliwość przeglądania tej historii (np. proste statystyki dzienne).
+
+#### 6. Interfejs użytkownika
+
+* Minimalistyczny, prosty i czytelny interfejs.
+* Brak powiadomień i przypomnień – jedynie widoczna lista zadań i podsumowania.
+
+#### 7. Backend i przechowywanie danych
+
+* Aplikacja korzysta z backendu napisanego w technologii .NET (np. ASP.NET Core).
+* Dane przechowywane są w plikach CSV (szczegóły przechowywania pozostawione do decyzji implementacyjnej).
+* Aplikacja działa online i wymaga dostępu do serwera, na którym będą zapisywane pliki CSV.
+
+#### 8. Eksport/import danych
+
+* Brak potrzeby eksportu/importu danych przez użytkownika.

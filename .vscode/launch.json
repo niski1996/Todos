@@ -1,0 +1,39 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Backend",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Backend/TodosApi/bin/Debug/net8.0/TodosApi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Backend/TodosApi",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "Debug Frontend",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/Frontend/bin/Debug/net8.0/Frontend.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Frontend",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Both",
+            "configurations": ["Debug Backend", "Debug Frontend"]
+        }
+    ]
+}
