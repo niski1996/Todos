@@ -25,9 +25,17 @@ namespace TodosApi.Services
         {
             var history = await _csvDataService.GetHistoryAsync();
             
-            if (days.HasValue && days.Value > 0)
+            if (days.HasValue)
             {
-                return history.Take(days.Value).ToList();
+                if (days.Value == 0)
+                {
+                    return new List<DailyHistory>();
+                }
+                else if (days.Value > 0)
+                {
+                    return history.Take(days.Value).ToList();
+                }
+                // Dla wartości ujemnych zwracamy całą historię
             }
 
             return history;

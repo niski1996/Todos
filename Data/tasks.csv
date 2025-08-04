@@ -1,0 +1,4 @@
+Id,Name,CreatedDate,IsCompleted,Order
+1,"Umyć dupe",2025-08-04 18:14:07,True,1
+2,"dupa",2025-08-04 18:14:43,False,2
+3,"Umyć ddedupe2",2025-08-04 18:15:44,False,3

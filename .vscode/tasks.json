@@ -24,7 +24,46 @@
             "args": [
                 "run",
                 "--project",
-                "${workspaceFolder}/src/Backend/TodosApi"
+                "${workspaceFolder}/src/Backend/TodosApi",
+                "--launch-profile",
+                "https"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "csharp",
+                "pattern": [
+                    {
+                        "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error)\\s+(\\w{1,2}\\d+):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "column": 3,
+                        "severity": 4,
+                        "code": 5,
+                        "message": 6
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^.*Building.*$",
+                    "endsPattern": "^.*Now listening on.*$"
+                }
+            }
+        },
+        {
+            "label": "run-backend-https",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "run",
+                "--project",
+                "${workspaceFolder}/src/Backend/TodosApi",
+                "--launch-profile",
+                "https"
             ],
             "group": "build",
             "presentation": {

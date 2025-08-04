@@ -8,9 +8,12 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 // Konfiguracja HttpClient dla API
+var apiUrl = builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7020/";
+Console.WriteLine($"🔧 API URL from configuration: {apiUrl}");
+
 builder.Services.AddHttpClient<TodoApiService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration.GetValue<string>("ApiBaseUrl") ?? "https://localhost:7001/");
+    client.BaseAddress = new Uri(apiUrl);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 

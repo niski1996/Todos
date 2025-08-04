@@ -20,7 +20,7 @@ Prosta aplikacja do zarządzania listą zadań na każdy dzień z historią wyko
 - **API**: RESTful endpoints
 
 ### Frontend (Blazor Server)
-- **Port**: 7000 (HTTPS), 5000 (HTTP)  
+- **Port**: 7204 (HTTPS), 5215 (HTTP)  
 - **Technologia**: Blazor Server + Bootstrap 5
 - **Komunikacja**: HttpClient → Backend API
 
@@ -86,7 +86,7 @@ Todos/
    ```
 
 4. **Otwórz aplikację**
-   - Frontend: https://localhost:7000
+   - Frontend: https://localhost:7204
    - Backend API + Swagger: https://localhost:7001 (automatycznie otwiera się Swagger UI)
    - Swagger dokumentacja: https://localhost:7001/swagger
 

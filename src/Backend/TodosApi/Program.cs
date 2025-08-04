@@ -37,8 +37,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:3000", // React dev server
                 "http://localhost:5173", // Vite dev server
-                "https://localhost:7000", // Blazor HTTPS
-                "http://localhost:5000"   // Blazor HTTP
+                "https://localhost:7204", // Blazor HTTPS
+                "http://localhost:5215"   // Blazor HTTP
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -86,3 +86,6 @@ app.UseRouting();
 app.MapControllers();
 
 app.Run();
+
+// Udostępnienie klasy Program dla testów integracyjnych
+public partial class Program { }
